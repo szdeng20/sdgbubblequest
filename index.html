@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SDG Bubble Quest</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#07090f}
+body{font-family:'Courier New',monospace;color:#e8edf5;display:flex;flex-direction:column;align-items:center;justify-content:center}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);pointer-events:none;z-index:200}
+
+.screen{display:none;width:100%;height:100%}
+.screen.on{display:flex}
+
+/* ═══ TITLE ═══ */
+#s-title{flex-direction:row;align-items:stretch;background:radial-gradient(ellipse at 40% 50%,#001a33,#07090f 70%)}
+.tl{flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:0 5vw;gap:1.2vh}
+.tr{width:36%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.8vh;padding:2vh;border-left:1px solid #1e2d42}
+.arc-badge{font-size:.6rem;letter-spacing:3px;text-transform:uppercase;color:#4a6080}
+.arc-title{font-size:clamp(1.8rem,4vw,3.4rem);font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#00f0a0;line-height:1.05;text-shadow:0 0 30px #00f0a060;animation:tglow 2.5s ease-in-out infinite alternate}
+@keyframes tglow{from{text-shadow:0 0 10px #00f0a040}to{text-shadow:0 0 40px #00f0a0,0 0 100px #00f0a030}}
+.arc-tag{font-size:.78rem;color:#7090b0;max-width:380px;line-height:1.6}
+.coin{font-size:.7rem;letter-spacing:2px;color:#ffd700;text-transform:uppercase;animation:blink 1.2s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.how{display:grid;grid-template-columns:auto 1fr;gap:5px 10px;align-items:start;max-width:360px}
+.hi{font-size:.95rem}.ht{font-size:.72rem;color:#a0b8d0;line-height:1.5}
+.chips{display:flex;flex-wrap:wrap;gap:4px;max-width:380px}
+.chip{font-size:.58rem;font-weight:700;padding:2px 7px;border-radius:20px}
+.btn{font-family:'Courier New',monospace;font-size:.85rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;padding:11px 32px;background:transparent;color:#00f0a0;border:2px solid #00f0a0;border-radius:4px;cursor:pointer;box-shadow:0 0 20px #00f0a030,inset 0 0 20px #00f0a010;transition:all .2s;position:relative;overflow:hidden}
+.btn::before{content:'';position:absolute;inset:0;background:#00f0a0;opacity:0;transition:opacity .2s}
+.btn:hover{color:#000;box-shadow:0 0 50px #00f0a080}.btn:hover::before{opacity:1}
+.btn span{position:relative;z-index:1}
+
+/* Orbit */
+.orbit{position:relative;width:min(28vh,180px);height:min(28vh,180px)}
+.oc{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(10vh,62px);height:min(10vh,62px);border-radius:50%;background:radial-gradient(circle at 35% 35%,#1e6fbf,#0d3d6e 55%,#061e35);box-shadow:0 0 40px #00f0a040;font-size:min(4.5vh,32px);display:flex;align-items:center;justify-content:center;animation:pulse 3s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.08)}}
+.ow{position:absolute;width:min(4.8vh,30px);height:min(4.8vh,30px);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:min(1.4vh,.6rem);font-weight:900;box-shadow:0 0 8px currentColor;animation:orbit var(--od) linear infinite}
+@keyframes orbit{from{transform:rotate(var(--os)) translateX(min(11vh,70px)) rotate(calc(-1*var(--os)))}to{transform:rotate(calc(var(--os)+360deg)) translateX(min(11vh,70px)) rotate(calc(-1*(var(--os)+360deg)))}}
+
+/* ═══ GAME ═══ */
+#s-game{flex-direction:row;align-items:stretch;background:#07090f}
+
+/* LEFT PANEL */
+.lp{width:25%;min-width:200px;max-width:280px;height:100%;background:#0d1117;border-right:1px solid #1e2d42;display:flex;flex-direction:column;padding:1.2vh 1.2vw;gap:.8vh;overflow:hidden;flex-shrink:0}
+.ph{font-size:.55rem;letter-spacing:2.5px;text-transform:uppercase;color:#3a5070;border-bottom:1px solid #1e2d42;padding-bottom:4px;flex-shrink:0}
+.se{font-size:min(3.5vh,1.9rem);flex-shrink:0}
+.st{font-size:min(1.6vh,.78rem);font-weight:900;color:#fff;line-height:1.3;flex-shrink:0}
+.sd{font-size:min(1.3vh,.63rem);color:#6888a8;line-height:1.55;flex-shrink:0;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+.qb{background:#0a0f1a;border:1px solid #00f0a030;border-radius:6px;padding:7px 9px;flex-shrink:0}
+.ql{font-size:.52rem;letter-spacing:2px;text-transform:uppercase;color:#00f0a0;margin-bottom:3px}
+.qt{font-size:min(1.3vh,.62rem);color:#c0d8f0;line-height:1.5}
+.sr{display:flex;gap:7px;align-items:center;background:#0a0f1a;border:1px solid #1e2d42;border-radius:6px;padding:6px 9px;flex-shrink:0}
+.sv{font-size:min(2.6vh,1.15rem);font-weight:900;color:#ffd700;letter-spacing:2px}
+.sl{font-size:.5rem;color:#4a6080;text-transform:uppercase;letter-spacing:1px}
+.lr{display:flex;gap:3px;font-size:min(1.6vh,.8rem)}
+.pb{height:4px;background:#1a2235;border-radius:3px;overflow:hidden;flex-shrink:0}
+.pi{height:100%;background:linear-gradient(90deg,#00f0a0,#4da6ff);border-radius:3px;transition:width .5s}
+.leg{display:flex;flex-direction:column;gap:3px;flex-shrink:0}
+.li{display:flex;align-items:center;gap:5px;font-size:min(1.25vh,.6rem)}
+.ld{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.eb{background:#020810;border:1px solid #00f0a030;border-radius:6px;padding:8px 9px;display:none;flex-direction:column;gap:6px;flex-shrink:0}
+.eb.show{display:flex}
+.el{font-size:.52rem;letter-spacing:2px;text-transform:uppercase;color:#00f0a0}
+.et{font-size:min(1.25vh,.6rem);color:#a0b8d0;line-height:1.55}
+.etg{display:flex;flex-wrap:wrap;gap:3px}
+.ep{font-size:.52rem;font-weight:700;padding:2px 7px;border-radius:20px}
+
+/* CANVAS */
+.cw{flex:1;height:100%;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 30%,#050d1a,#07090f);overflow:hidden}
+#gc{display:block}
+.ah{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);font-size:.55rem;letter-spacing:2px;color:#1e2d42;text-transform:uppercase;white-space:nowrap}
+
+/* RIGHT PANEL */
+.rp{width:16%;min-width:120px;max-width:180px;height:100%;background:#0d1117;border-left:1px solid #1e2d42;display:flex;flex-direction:column;padding:1.2vh .9vw;gap:.9vh;overflow:hidden;flex-shrink:0}
+.rps{display:flex;flex-direction:column;gap:4px;flex-shrink:0}
+.rpl{font-size:.52rem;letter-spacing:2px;text-transform:uppercase;color:#3a5070;border-bottom:1px solid #1e2d42;padding-bottom:3px}
+.sr2{display:flex;align-items:center;gap:4px;font-size:.6rem}
+.sd2{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* ═══ RESULT ═══ */
+#s-result{flex-direction:row;align-items:stretch;background:radial-gradient(ellipse at 50% 50%,#001428,#07090f)}
+.rl{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5vh;padding:3vh 4vw;text-align:center}
+.rr{width:36%;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:1vh;padding:2vh 2.5vw;border-left:1px solid #1e2d42;overflow:hidden}
+.rb{font-size:min(9vh,4.5rem);animation:rPop .8s cubic-bezier(.17,.67,.35,1.3)}
+@keyframes rPop{from{transform:scale(0) rotate(-20deg);opacity:0}to{transform:scale(1);opacity:1}}
+.rs{font-size:min(6vh,3rem);font-weight:900;color:#ffd700;letter-spacing:4px}
+.rt{font-size:min(2.2vh,1rem);letter-spacing:3px;text-transform:uppercase;color:#00f0a0}
+.rm{font-size:min(1.5vh,.72rem);color:#7090b0;max-width:340px;line-height:1.7}
+.rrlab{font-size:.52rem;letter-spacing:2px;text-transform:uppercase;color:#3a5070;border-bottom:1px solid #1e2d42;padding-bottom:3px}
+.rscroll{display:flex;flex-wrap:wrap;gap:4px;overflow:hidden;max-height:45vh}
+.rpill{font-size:.55rem;font-weight:700;padding:3px 8px;border-radius:20px}
+.rbtns{display:flex;gap:9px;flex-wrap:wrap;justify-content:center}
+
+/* FLASH */
+#flash{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity .15s}
+#flash.show{opacity:1}
+.fi{font-size:min(3.5vh,1.8rem);font-weight:900;letter-spacing:4px;text-transform:uppercase;padding:12px 28px;border-radius:6px;font-family:'Courier New',monospace}
+.fi.ok{background:#001a0f;color:#00f0a0;border:2px solid #00f0a0;box-shadow:0 0 40px #00f0a060}
+.fi.bad{background:#1a0500;color:#ff4444;border:2px solid #ff4444;box-shadow:0 0 40px #ff444460}
+
+/* CONFETTI */
+.cnf{position:fixed;width:8px;height:8px;border-radius:2px;pointer-events:none;z-index:400;animation:cf var(--d) linear forwards}
+@keyframes cf{0%{transform:translateY(-10px) rotate(0);opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:0}}
+</style>
+</head>
+<body>
+
+<!-- ══ TITLE ══ -->
+<div class="screen on" id="s-title">
+  <div class="tl">
+    <div class="arc-badge">🌍 Sustainability Learning Journey</div>
+    <div class="arc-title">SDG<br>Bubble<br>Quest</div>
+    <p class="arc-tag">Read the scenario · Identify the SDG · Fire at the right bubble target</p>
+    <div class="how">
+      <span class="hi">🎯</span><span class="ht"><b style="color:#e8f0fe">AIM</b> with your mouse — cannon tracks your cursor</span>
+      <span class="hi">🖱️</span><span class="ht"><b style="color:#e8f0fe">CLICK</b> to fire at a floating SDG target bubble</span>
+      <span class="hi">✅</span><span class="ht">Hit the <b style="color:#00f0a0">RIGHT SDG</b> → 100 pts + insight unlocked</span>
+      <span class="hi">❌</span><span class="ht">Wrong SDG → lose a life · 3 lives per scene</span>
+    </div>
+    <div class="chips" id="chip-row"></div>
+    <button class="btn" onclick="startGame()"><span>▶ START MISSION</span></button>
+    <div class="coin">5 SCENARIOS · 17 SDGS · SAVE THE PLANET</div>
+  </div>
+  <div class="tr">
+    <div class="orbit" id="orbit"></div>
+    <div style="font-size:.65rem;color:#2a4060;text-align:center;max-width:160px;line-height:1.7">Each bubble is a real UN SDG. Which one fits the crisis?</div>
+  </div>
+</div>
+
+<!-- ══ GAME ══ -->
+<div class="screen" id="s-game">
+  <div class="lp">
+    <div class="ph">📡 LIVE SCENARIO</div>
+    <div class="se" id="sc-e">🌊</div>
+    <div class="st" id="sc-t">Loading...</div>
+    <div class="sd" id="sc-d"></div>
+    <div class="qb"><div class="ql">▸ MISSION</div><div class="qt">Which SDG guides the response?</div></div>
+    <div class="sr">
+      <div><div class="sl">Score</div><div class="sv" id="ui-sc">0000</div></div>
+      <div style="flex:1"><div class="sl">Lives</div><div class="lr" id="ui-lv">❤️❤️❤️</div></div>
+      <div style="text-align:right"><div class="sl">Scene</div><div style="font-size:min(2.2vh,.9rem);font-weight:900;color:#4da6ff" id="ui-sn">1/5</div></div>
+    </div>
+    <div class="pb"><div class="pi" id="ui-pg" style="width:0%"></div></div>
+    <div class="ph">🎯 TARGETS IN PLAY</div>
+    <div class="leg" id="legend"></div>
+    <div class="eb" id="eb">
+      <div class="el">📚 SDG INSIGHT</div>
+      <div class="et" id="et"></div>
+      <div class="etg" id="etg"></div>
+      <button class="btn" style="padding:6px 12px;font-size:.62rem;letter-spacing:2px;width:100%;margin-top:2px" onclick="advanceScene()"><span id="nlbl">Next Scene →</span></button>
+    </div>
+  </div>
+
+  <div class="cw" id="cw">
+    <canvas id="gc"></canvas>
+    <div class="ah">MOVE MOUSE TO AIM · CLICK TO FIRE</div>
+  </div>
+
+  <div class="rp">
+    <div class="rps"><div class="rpl">🗂 SDG REF</div><div id="sdg-ref"></div></div>
+    <div class="rps" style="margin-top:auto">
+      <div class="rpl">📊 THIS RUN</div>
+      <div style="font-size:.58rem;color:#4a6080">Hits</div>
+      <div style="font-size:min(2.4vh,1rem);font-weight:900;color:#00f0a0" id="hc">0/0</div>
+      <div style="font-size:.58rem;color:#4a6080;margin-top:3px">Score</div>
+      <div style="font-size:min(2vh,.85rem);font-weight:900;color:#ffd700;letter-spacing:2px" id="ss">0000</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RESULT ══ -->
+<div class="screen" id="s-result">
+  <div class="rl">
+    <div class="rb" id="re">🌍</div>
+    <div class="rs" id="rsc">0000</div>
+    <div class="rt" id="rtl">Mission Complete</div>
+    <p class="rm" id="rmsg"></p>
+    <div class="rbtns">
+      <button class="btn" onclick="startGame()"><span>↺ PLAY AGAIN</span></button>
+      <button class="btn" style="border-color:#2a4060;color:#4a6080" onclick="goHome()"><span>← HOME</span></button>
+    </div>
+  </div>
+  <div class="rr">
+    <div class="rrlab">🌱 SDGs Explored</div>
+    <div class="rscroll" id="rsdgs"></div>
+    <div style="margin-top:auto">
+      <div class="rrlab" style="margin-bottom:5px">🏆 Stats</div>
+      <div style="font-size:.65rem;color:#4a6080;line-height:2" id="rstats"></div>
+    </div>
+  </div>
+</div>
+
+<div id="flash"><div class="fi" id="fi"></div></div>
+
+<script>
+const CLR={1:'#E5243B',2:'#DDA63A',3:'#4C9F38',4:'#C5192D',5:'#FF3A21',6:'#26BDE2',7:'#FCC30B',8:'#A21942',9:'#FD6925',10:'#DD1367',11:'#FD9D24',12:'#BF8B2E',13:'#3F7E44',14:'#0A97D9',15:'#56C02B',16:'#00689D',17:'#19486A'};
+const NM={1:'No Poverty',2:'Zero Hunger',3:'Good Health',4:'Quality Education',5:'Gender Equality',6:'Clean Water',7:'Clean Energy',8:'Decent Work',9:'Innovation',10:'Reduced Inequalities',11:'Sustainable Cities',12:'Responsible Consumption',13:'Climate Action',14:'Life Below Water',15:'Life on Land',16:'Peace & Justice',17:'Partnerships'};
+
+const SCENES=[
+  {emoji:'🌊',title:'Coral Reefs Under Threat',desc:'Pacific fishing communities report empty nets and dying coral reefs. Scientists found massive plastic patches across hundreds of miles. Marine species are declining rapidly, threatening food security for millions.',correct:14,targets:[14,12,13,7,6],explain:'SDG 14 — Life Below Water — directly addresses ocean health, reducing plastic pollution, protecting coral reefs, and sustainable fisheries. These are core SDG 14 targets.',tags:[14,12,13]},
+  {emoji:'🏭',title:'The Poisoned River',desc:'A textile factory has been dumping chemical waste into the local river for years. Downstream villages cannot drink the water or irrigate crops. Children are falling ill and the clinic is overwhelmed.',correct:6,targets:[6,3,16,9,13],explain:'SDG 6 — Clean Water & Sanitation — targets the root problem: safe water free from industrial contamination. Building hospitals (SDG 3) treats symptoms; SDG 6 addresses the cause.',tags:[6,3,16]},
+  {emoji:'🌡️',title:'City Heatwave Emergency',desc:'A major city records its hottest summer ever. Elderly residents are hospitalised with heatstroke, power grids are collapsing, and roads are melting. Scientists link this directly to rising global temperatures.',correct:13,targets:[13,11,7,3,9],explain:'SDG 13 — Climate Action — addresses the root cause: greenhouse gas emissions driving global temperature rise. SDG 11 and SDG 7 are vital supporting actions.',tags:[13,11,7]},
+  {emoji:'🌳',title:'The Vanishing Forest',desc:'A logging company cleared 40% of an ancient rainforest in two years. Indigenous communities lost their homes, hundreds of species face extinction, and the disrupted water cycle causes droughts downstream.',correct:15,targets:[15,10,12,2,13],explain:'SDG 15 — Life on Land — directly targets deforestation, biodiversity loss, and terrestrial ecosystem protection. Halting forest loss is a core SDG 15 target.',tags:[15,10,12]},
+  {emoji:'🍎',title:'The Food Waste Paradox',desc:'Supermarkets in wealthy cities discard tonnes of food daily while food banks overflow. Scientists confirm one-third of all food produced globally is wasted — enough to feed every hungry person twice over.',correct:12,targets:[12,2,9,17,3],explain:'SDG 12 — Responsible Consumption & Production — explicitly targets halving global food waste by 2030, addressing the structural over-consumption at the heart of this paradox.',tags:[12,2,17]}
+];
+
+// Title orbit
+const orb=document.getElementById('orbit');
+orb.innerHTML='<div class="oc">🌍</div>';
+[13,14,15,6,12,7,11,3].forEach((n,i)=>{const c=document.createElement('div');c.className='ow';c.style.cssText=`background:${CLR[n]}22;color:${CLR[n]};border:1px solid ${CLR[n]}88;--os:${i/8*360}deg;--od:${12+i*1.8}s`;c.textContent=n;orb.appendChild(c)});
+[13,14,15,6,12,7].forEach(n=>{const c=document.createElement('span');c.className='chip';c.style.cssText=`background:${CLR[n]}20;color:${CLR[n]};border:1px solid ${CLR[n]}44`;c.textContent=`SDG ${n}: ${NM[n]}`;document.getElementById('chip-row').appendChild(c)});
+
+// SDG ref panel
+const ref=document.getElementById('sdg-ref');
+[13,14,15,6,12,7,11,3,2,9,16,10,17].forEach(n=>{const d=document.createElement('div');d.className='sr2';d.innerHTML=`<div class="sd2" style="background:${CLR[n]}"></div><span style="color:#7090b0"><b style="color:${CLR[n]}">${n}</b> ${NM[n]}</span>`;ref.appendChild(d)});
+
+let cur=0,score=0,lives=3,bubble=null,targets=[],parts=[];
+let mx=0,my=0,animId=null,active=false,done=false;
+let earned=[],hits=0,shots=0;
+const cv=document.getElementById('gc'),ctx=cv.getContext('2d');
+
+function resize(){const w=document.getElementById('cw');cv.width=w.clientWidth;cv.height=w.clientHeight;mx=cv.width/2;my=cv.height*0.3}
+
+function startGame(){cur=0;score=0;lives=3;earned=[];hits=0;shots=0;show('s-game');resize();loadScene();if(animId)cancelAnimationFrame(animId);loop()}
+
+function loadScene(){
+  const q=SCENES[cur];done=false;lives=3;bubble=null;parts=[];active=true;
+  document.getElementById('sc-e').textContent=q.emoji;
+  document.getElementById('sc-t').textContent=q.title;
+  document.getElementById('sc-d').textContent=q.desc;
+  document.getElementById('ui-sn').textContent=`${cur+1}/5`;
+  document.getElementById('ui-pg').style.width=`${cur/5*100}%`;
+  document.getElementById('eb').classList.remove('show');
+  upUI();
+  const leg=document.getElementById('legend');leg.innerHTML='';
+  q.targets.forEach(s=>{const d=document.createElement('div');d.className='li';d.innerHTML=`<div class="ld" style="background:${CLR[s]};box-shadow:0 0 4px ${CLR[s]}80"></div><span style="color:#b0c8e0"><b style="color:${CLR[s]}">SDG ${s}</b> — ${NM[s]}</span>`;leg.appendChild(d)});
+  spawnT(q);
+}
+
+function spawnT(q){
+  targets=[];
+  const W=cv.width,H=cv.height;
+  const R=Math.min(W*.075,H*.11,46);
+  const rows=[[0,1,2],[3,4]],rowY=[H*.2,H*.4];
+  rows.forEach((row,ri)=>{
+    const gap=Math.min(W*.21,R*3.8);
+    const sx=W/2-(row.length-1)*gap/2;
+    row.forEach((idx,ci)=>{const s=q.targets[idx];targets.push({sdg:s,x:sx+ci*gap,y:rowY[ri],r:R,vx:(Math.random()-.5)*1,vy:0,phase:Math.random()*Math.PI*2,alive:true,scale:1,sd:0})});
+  });
+}
+
+function upUI(){
+  document.getElementById('ui-sc').textContent=String(score).padStart(4,'0');
+  document.getElementById('ui-lv').textContent=['❤️','❤️','❤️'].map((h,i)=>i<lives?h:'🖤').join('');
+  document.getElementById('hc').textContent=`${hits}/${cur+(done?1:0)}`;
+  document.getElementById('ss').textContent=String(score).padStart(4,'0');
+}
+
+const SPD=13;
+function getCP(){return{x:cv.width/2,y:cv.height-55}}
+function fire(){
+  if(!active||done||bubble)return;shots++;
+  const{x:cx,y:cy}=getCP(),dx=mx-cx,dy=my-cy,d=Math.hypot(dx,dy);
+  if(d<5)return;
+  bubble={x:cx,y:cy,vx:dx/d*SPD,vy:dy/d*SPD,r:Math.min(cv.width*.028,cv.height*.04,15),trail:[]};
+}
+
+function spP(x,y,col,n=20){for(let i=0;i<n;i++){const a=i/n*Math.PI*2,s=2+Math.random()*4;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,r:2+Math.random()*4,col,life:1,dec:.025+Math.random()*.02})}}
+
+function loop(){animId=requestAnimationFrame(loop);update();draw()}
+
+function update(){
+  const t=Date.now()/1000;
+  targets.forEach(tg=>{
+    if(!tg.alive)return;
+    tg.x+=tg.vx;tg.y+=Math.sin(t*1.1+tg.phase)*.35;
+    const W=cv.width;
+    if(tg.x-tg.r<25){tg.x=25+tg.r;tg.vx=Math.abs(tg.vx)}
+    if(tg.x+tg.r>W-25){tg.x=W-25-tg.r;tg.vx=-Math.abs(tg.vx)}
+    if(tg.sd!==0){tg.scale+=tg.sd*.1;if(tg.scale>=1.35)tg.sd=-1;if(tg.scale<=0){tg.alive=false;tg.scale=0}}
+  });
+  if(bubble){
+    bubble.trail.push({x:bubble.x,y:bubble.y});
+    if(bubble.trail.length>12)bubble.trail.shift();
+    bubble.x+=bubble.vx;bubble.y+=bubble.vy;
+    if(bubble.x-bubble.r<0){bubble.x=bubble.r;bubble.vx*=-1}
+    if(bubble.x+bubble.r>cv.width){bubble.x=cv.width-bubble.r;bubble.vx*=-1}
+    if(bubble.y<-bubble.r||bubble.y>cv.height+bubble.r){bubble=null;return}
+    for(const tg of targets){
+      if(!tg.alive)continue;
+      if(Math.hypot(bubble.x-tg.x,bubble.y-tg.y)<bubble.r+tg.r){bubble=null;hit(tg,tg.sdg===SCENES[cur].correct);break}
+    }
+  }
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.07;p.life-=p.dec});
+  parts=parts.filter(p=>p.life>0);
+}
+
+function hit(tg,ok){
+  if(ok){
+    tg.sd=1;score+=100;hits++;spP(tg.x,tg.y,CLR[tg.sdg],28);upUI();flash('✓ CORRECT!','ok');
+    setTimeout(()=>targets.forEach(t=>{if(t.alive&&t.sdg!==tg.sdg)t.sd=1}),300);
+    setTimeout(()=>{active=false;done=true;showExp()},900);
+    SCENES[cur].tags.forEach(s=>{if(!earned.includes(s))earned.push(s)});
+  } else {
+    spP(tg.x,tg.y,'#ff4444',14);lives--;upUI();flash('✗ WRONG SDG','bad');tg.vx+=(Math.random()-.5)*3;
+    if(lives<=0){
+      setTimeout(()=>{targets.forEach(t=>{if(t.alive&&t.sdg===SCENES[cur].correct)spP(t.x,t.y,CLR[t.sdg],24)});active=false;done=true;SCENES[cur].tags.forEach(s=>{if(!earned.includes(s))earned.push(s)});setTimeout(()=>showExp(),700)},400);
+    }
+  }
+}
+
+function showExp(){
+  const q=SCENES[cur];
+  document.getElementById('et').textContent=q.explain;
+  const eg=document.getElementById('etg');eg.innerHTML='';
+  q.tags.forEach(s=>{const p=document.createElement('span');p.className='ep';p.style.cssText=`background:${CLR[s]}20;color:${CLR[s]};border:1px solid ${CLR[s]}55`;p.textContent=`SDG ${s}: ${NM[s]}`;eg.appendChild(p)});
+  document.getElementById('nlbl').textContent=cur<4?'Next Scene →':'🌍 See Results';
+  document.getElementById('eb').classList.add('show');
+}
+
+function advanceScene(){cur++;cur>=SCENES.length?showRes():loadScene()}
+
+function draw(){
+  const W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  // grid
+  ctx.strokeStyle='#0c1a28';ctx.lineWidth=1;
+  for(let x=0;x<W;x+=36){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+  for(let y=0;y<H;y+=36){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+  // vignette
+  const vg=ctx.createRadialGradient(W/2,H/2,H*.25,W/2,H/2,H*.8);
+  vg.addColorStop(0,'transparent');vg.addColorStop(1,'rgba(0,0,0,.55)');
+  ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+  // particles
+  parts.forEach(p=>{ctx.globalAlpha=p.life;ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill()});ctx.globalAlpha=1;
+  // targets
+  targets.forEach(tg=>{
+    if(!tg.alive)return;
+    ctx.save();ctx.translate(tg.x,tg.y);ctx.scale(tg.scale,tg.scale);
+    const gl=ctx.createRadialGradient(0,0,tg.r*.3,0,0,tg.r*1.6);gl.addColorStop(0,CLR[tg.sdg]+'35');gl.addColorStop(1,'transparent');
+    ctx.fillStyle=gl;ctx.beginPath();ctx.arc(0,0,tg.r*1.6,0,Math.PI*2);ctx.fill();
+    const gr=ctx.createRadialGradient(-tg.r*.28,-tg.r*.28,2,0,0,tg.r);
+    gr.addColorStop(0,CLR[tg.sdg]+'cc');gr.addColorStop(.55,CLR[tg.sdg]+'88');gr.addColorStop(1,CLR[tg.sdg]+'28');
+    ctx.fillStyle=gr;ctx.beginPath();ctx.arc(0,0,tg.r,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle=CLR[tg.sdg];ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,tg.r,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.2)';ctx.beginPath();ctx.ellipse(-tg.r*.22,-tg.r*.28,tg.r*.26,tg.r*.16,-.4,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font=`900 ${tg.r*.62}px 'Courier New',monospace`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.shadowColor=CLR[tg.sdg];ctx.shadowBlur=8;ctx.fillText(tg.sdg,0,0);ctx.shadowBlur=0;
+    ctx.restore();
+  });
+  // aim
+  const{x:cx,y:cy}=getCP(),dx=mx-cx,dy=my-cy,dist=Math.hypot(dx,dy);
+  if(dist>5&&active&&!done){
+    const nx=dx/dist,ny=dy/dist;ctx.strokeStyle='#00f0a025';ctx.lineWidth=1.5;ctx.setLineDash([5,10]);
+    ctx.beginPath();ctx.moveTo(cx,cy);let ax=cx,ay=cy;
+    for(let i=0;i<50;i++){ax+=nx*10;ay+=ny*10;if(ay<0||ax<5||ax>W-5)break}
+    ctx.lineTo(ax,ay);ctx.stroke();ctx.setLineDash([]);
+  }
+  // bubble trail + bubble
+  if(bubble){
+    bubble.trail.forEach((pt,i)=>{ctx.globalAlpha=(i/bubble.trail.length)*.3;ctx.fillStyle='#00f0a0';ctx.beginPath();ctx.arc(pt.x,pt.y,bubble.r*(i/bubble.trail.length),0,Math.PI*2);ctx.fill()});ctx.globalAlpha=1;
+    ctx.shadowColor='#00f0a0';ctx.shadowBlur=18;
+    const bg=ctx.createRadialGradient(bubble.x-bubble.r*.28,bubble.y-bubble.r*.28,1,bubble.x,bubble.y,bubble.r);
+    bg.addColorStop(0,'rgba(0,255,160,.9)');bg.addColorStop(.6,'rgba(0,200,130,.6)');bg.addColorStop(1,'rgba(0,150,100,.2)');
+    ctx.fillStyle=bg;ctx.beginPath();ctx.arc(bubble.x,bubble.y,bubble.r,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#00f0a0';ctx.lineWidth=2;ctx.beginPath();ctx.arc(bubble.x,bubble.y,bubble.r,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;
+    ctx.fillStyle='rgba(255,255,255,.38)';ctx.beginPath();ctx.ellipse(bubble.x-bubble.r*.22,bubble.y-bubble.r*.26,bubble.r*.28,bubble.r*.17,-.3,0,Math.PI*2);ctx.fill();
+  }
+  drawCannon(cx,cy);
+}
+
+function drawCannon(cx,cy){
+  const ang=Math.atan2(my-cy,mx-cx);
+  ctx.save();ctx.translate(cx,cy);
+  ctx.fillStyle='#1a2a3a';ctx.strokeStyle='#2a4060';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.ellipse(0,6,30,9,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.rotate(ang);
+  const bl=36,bw=10,bg=ctx.createLinearGradient(0,-bw/2,0,bw/2);
+  bg.addColorStop(0,'#3a5a78');bg.addColorStop(.5,'#4a7a98');bg.addColorStop(1,'#2a3a50');
+  ctx.fillStyle=bg;ctx.strokeStyle='#00f0a050';ctx.lineWidth=1.2;
+  ctx.beginPath();ctx.roundRect(0,-bw/2,bl,bw,3);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#00f0a0';ctx.strokeStyle='#007050';ctx.lineWidth=1;
+  ctx.beginPath();ctx.ellipse(bl,0,3,bw/2+1,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.rotate(-ang);
+  const hg=ctx.createRadialGradient(-2,-2,1,0,0,11);hg.addColorStop(0,'#4a7a98');hg.addColorStop(1,'#1a3a58');
+  ctx.fillStyle=hg;ctx.strokeStyle='#00f0a0';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(0,0,11,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#00f0a0';ctx.beginPath();ctx.arc(0,0,4,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+
+function showRes(){
+  if(animId){cancelAnimationFrame(animId);animId=null}show('s-result');
+  document.getElementById('rsc').textContent=String(score).padStart(4,'0');
+  let em,tl,msg;
+  if(score>=400){em='🌟';tl='SDG CHAMPION';msg='Perfect mission! You nailed every sustainability crisis. The 2030 Agenda needs advocates like you.';confetti()}
+  else if(score>=200){em='🌍';tl='RISING CHANGEMAKER';msg='Great shooting! Strong sustainability awareness. Keep exploring all 17 SDGs.'}
+  else{em='🌱';tl='LEARNING EXPLORER';msg='Every expert started as a learner. Review the SDG insights and try again!'}
+  document.getElementById('re').textContent=em;document.getElementById('rtl').textContent=tl;document.getElementById('rmsg').textContent=msg;
+  document.getElementById('rstats').innerHTML=`Correct hits: <b style="color:#00f0a0">${hits} / 5</b><br>Total shots: <b style="color:#ffd700">${shots}</b><br>Accuracy: <b style="color:#4da6ff">${shots?Math.round(hits/shots*100):0}%</b>`;
+  const rs=document.getElementById('rsdgs');rs.innerHTML='';
+  [...earned].sort((a,b)=>a-b).forEach((s,i)=>{const p=document.createElement('span');p.className='rpill';p.style.cssText=`background:${CLR[s]}18;color:${CLR[s]};border:1px solid ${CLR[s]}55;animation-delay:${i*.07}s`;p.textContent=`SDG ${s}: ${NM[s]}`;rs.appendChild(p)});
+}
+
+let ft=null;
+function flash(txt,type){const f=document.getElementById('flash'),fi=document.getElementById('fi');fi.textContent=txt;fi.className=`fi ${type}`;f.classList.add('show');if(ft)clearTimeout(ft);ft=setTimeout(()=>f.classList.remove('show'),900)}
+
+function confetti(){const cols=['#00f0a0','#4da6ff','#ffd700','#ff6b6b','#b57aff','#ff9500'];for(let i=0;i<60;i++){const c=document.createElement('div');c.className='cnf';c.style.cssText=`left:${Math.random()*100}vw;top:-10px;background:${cols[~~(Math.random()*cols.length)]};--d:${1.5+Math.random()*2.5}s;animation-delay:${Math.random()*1.5}s`;document.body.appendChild(c);setTimeout(()=>c.remove(),5000)}}
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on')}
+function goHome(){if(animId){cancelAnimationFrame(animId);animId=null}show('s-title')}
+
+cv.addEventListener('mousemove',e=>{const r=cv.getBoundingClientRect();mx=e.clientX-r.left;my=e.clientY-r.top});
+cv.addEventListener('click',()=>{if(!active||done)return;fire()});
+window.addEventListener('resize',()=>{if(document.getElementById('s-game').classList.contains('on')){resize();if(active)spawnT(SCENES[cur])}});
+</script>
+</body>
+</html>
